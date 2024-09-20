@@ -12,17 +12,12 @@ if (!isset($_SESSION['eahpaid']) && !isset($_SESSION['driverid'])) {
         $bookingnum = $_GET['bookingnum'];
         $remark = $_POST['remark']; 
         $status = $_POST['status'];
-        $ambregno2 = $_POST['ambregno'];
-
-        if ($ambregno2 != ''):
-            $ambulanceregnum = $_POST['ambregno'];
-        else:
-            $ambulanceregnum = $_POST['ambulanceregnum'];
-        endif;
+        $ambulanceregnum = $_POST['ambulanceregnum']; // Get the ambulance reg number from the form
 
         // Update ambulance and hiring records
         $updateQuery1 = mysqli_query($con, "UPDATE tblambulance SET status='$status' WHERE AmbRegNum='$ambulanceregnum'");
         $updateQuery2 = mysqli_query($con, "UPDATE tblambulancehiring SET Status='$status', Remark='$remark', AmbulanceRegNo='$ambulanceregnum' WHERE BookingNumber='$bookingnum'");
+        
         // Insert tracking history
         $insertQuery = mysqli_query($con, "INSERT INTO tbltrackinghistory(BookingNumber, AmbulanceRegNum, Remark, Status) VALUES ('$bookingnum', '$ambulanceregnum', '$remark', '$status')");
 
@@ -33,17 +28,21 @@ if (!isset($_SESSION['eahpaid']) && !isset($_SESSION['driverid'])) {
             echo '<script>alert("Something Went Wrong. Please try again.")</script>';
         }
     }
+$ambRegNum = isset($_SESSION['AmbRegNum']) ? $_SESSION['AmbRegNum'] : null;
+
 ?>
 
 <!DOCTYPE html>
+<html lang="en">
 <head>
-<title>EAHP || Booking Details</title>
-<link rel="stylesheet" href="css/bootstrap.min.css">
-<link href="css/style.css" rel='stylesheet' type='text/css' />
-<link href="css/style-responsive.css" rel="stylesheet"/>
-<link rel="stylesheet" href="css/font.css" type="text/css"/>
-<link href="css/font-awesome.css" rel="stylesheet"> 
-<script src="js/jquery2.0.3.min.js"></script>
+    <meta charset="UTF-8">
+    <title>EAHP || Booking Details</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link href="css/style.css" rel='stylesheet' type='text/css' />
+    <link href="css/style-responsive.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/font.css" type="text/css"/>
+    <link href="css/font-awesome.css" rel="stylesheet"> 
+    <script src="js/jquery2.0.3.min.js"></script>
 </head>
 <body>
 <section id="container">
@@ -104,12 +103,15 @@ while ($row = mysqli_fetch_array($ret)) {
         <td><?php echo $row['Message'];?></td>
     </tr>
     <tr>
+        <th>Patient Loaction</th>
+        <td colspan="3"><?php echo $row['UserLocation'];?></td>
+    </tr>
+    <tr>
         <th>Hospital</th>
         <td colspan="3"><?php echo $row['hospital'];?></td>
     </tr>
 </table>
 <?php } ?>
-
 <?php 
 $bookingnum = $_GET['bookingnum'];
 $query1 = mysqli_query($con, "SELECT Remark, Status, UpdationDate, BookingNumber, AmbulanceRegNum FROM tbltrackinghistory WHERE BookingNumber='$bookingnum'");
@@ -155,96 +157,70 @@ if ($count > 0) {
     </div>
 <?php } ?>
 
-<!-- Administrator and Driver Specific Actions -->
+<!-- Driver Specific Actions -->
 <?php 
-// Determine available status options based on current status
-$statusOptions = [];
-if ($pstatus == "") {
-    $statusOptions = [
-        'Assigned' => 'Assigned',
-        'Rejected' => 'Rejected'
-    ];
-} elseif ($pstatus == "Assigned") {
-    $statusOptions = ['On the way' => 'On the way'];
-} elseif ($pstatus == "On the way") {
-    $statusOptions = ['Pickup' => 'Pick Patient'];
-} elseif ($pstatus == "Pickup") {
-    $statusOptions = ['Reached' => 'Reached'];
-}
+if (isset($_SESSION['driverid'])) { // Only show to drivers
+    // Determine available status options based on current status
+    $statusOptions = [];
+    if ($pstatus == "") {
+        $statusOptions = [
+            'Assigned' => 'Assigned',
+            'Rejected' => 'Rejected'
+        ];
+    } elseif ($pstatus == "Assigned") {
+        $statusOptions = ['On the way' => 'On the way'];
+    } elseif ($pstatus == "On the way") {
+        $statusOptions = ['Pickup' => 'Pick Patient'];
+    } elseif ($pstatus == "Pickup") {
+        $statusOptions = ['Reached' => 'Reached'];
+    }
 
-if (count($statusOptions) > 0) { ?>
-    <table border="1" class="table table-bordered mg-b-0">
-        <tr>
-            <td colspan="6" style="font-size:18px;text-align: center;color: blue;">
-                <?php if (isset($_SESSION['eahpaid'])): ?>
-                    Administrator Work
-                <?php else: ?>
-                    Driver Actions
-                <?php endif; ?>
-            </td>
-        </tr>
-        <form method="post" name="submit">
-            <input type="hidden" name="ambregno" value="<?php echo $arnum;?>">
+    if (count($statusOptions) > 0) { ?>
+        <table border="1" class="table table-bordered mg-b-0">
             <tr>
-                <th>Status :</th>
-                <td>
-                    <select class="form-control" id="status" name="status" required>
-                        <option value="">Choose Status</option>
-                        <?php foreach ($statusOptions as $value => $label): ?>
-                            <option value="<?php echo $value; ?>"><?php echo $label; ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                <td colspan="6" style="font-size:18px;text-align: center;color: blue;">
+                    Driver Actions
                 </td>
             </tr>
+            <form method="post" name="submit">
+                <input type="hidden" name="ambregno" value="<?php echo $arnum; ?>">
+                <input type="hidden" name="ambulanceregnum" value="<?php echo $ambRegNum; ?>">
 
-            <?php if (isset($_SESSION['eahpaid']) && $pstatus == "") { ?>
-                <tr id="assign">
-                    <th>Assign To :</th>
+                <tr>
+                    <th>Status :</th>
                     <td>
-                        <select name="ambulanceregnum" id="ambulanceregnum" class="form-control">
-                            <option value="">Select</option>
-                            <?php 
-                            $query = mysqli_query($con, "SELECT * FROM tblambulance WHERE Status IS NULL OR Status='Reached'");
-                            while ($row3 = mysqli_fetch_array($query)) { ?>
-                                <option value="<?php echo $row3['AmbRegNum'];?>">
-                                    <?php 
-                                    $atype = $row3['AmbulanceType'];  
-                                    if ($atype == "1") {
-                                        echo "Basic Life Support (BLS) Ambulances";
-                                    } elseif ($atype == "2") {
-                                        echo "Advanced Life Support (ALS) Ambulances";
-                                    } elseif ($atype == "3") {
-                                        echo "Mortuary Ambulances";
-                                    } ?>
-                                    (<?php echo $row3['AmbRegNum'];?>)
-                                </option>
-                            <?php } ?>
+                        <select class="form-control" id="status" name="status" required>
+                            <option value="">Choose Status</option>
+                            <?php foreach ($statusOptions as $value => $label): ?>
+                                <option value="<?php echo $value; ?>"><?php echo $label; ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </td>
                 </tr>
-            <?php } ?>
 
-            <tr>
-                <th>Remark :</th>
-                <td>
-                    <textarea name="remark" placeholder="Remark" rows="12" cols="14" class="form-control" required></textarea>
-                </td>
-            </tr>
+                <tr>
+                    <th>Remark :</th>
+                    <td>
+                        <textarea name="remark" placeholder="Remark" rows="12" cols="14" class="form-control" required></textarea>
+                    </td>
+                </tr>
 
-            <tr align="center">
-                <td colspan="2">
-                    <button type="submit" name="submit" class="btn btn-primary">Update</button>
-                </td>
-            </tr>
-        </form>
-    </table>
-<?php } ?>
+                <tr align="center">
+                    <td colspan="2">
+                        <button type="submit" name="submit" class="btn btn-primary">Update</button>
+                    </td>
+                </tr>
+            </form>
+        </table>
+    <?php }
+}
+?>
 </div>
 </div>
 </div>
 </section>
 <!--footer start-->
-<?php include_once('includes/footer.php');?>
+<?php include_once('includes/footer.php'); ?>
 <!--footer end-->
 </section>
 </section>
