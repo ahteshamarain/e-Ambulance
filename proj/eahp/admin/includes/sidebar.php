@@ -98,6 +98,7 @@ include('includes/dbconnection.php');
                         <li><a href="ontheway-ambulance-request.php">On The Way</a></li>
                         <li><a href="pickup-ambulance-request.php">Pickup</a></li>
                         <li><a href="reached-ambulance-request.php">Reached Hospital</a></li>
+                        <li><a href="all-amublance-request.php">All Requests</a></li>
                     </ul>
                 </li>
                 
