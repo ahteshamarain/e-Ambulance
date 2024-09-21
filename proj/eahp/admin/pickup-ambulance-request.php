@@ -12,7 +12,9 @@ if (strlen($_SESSION['eahpaid']) == 0 && strlen($_SESSION['driverid']) == 0) {
 <!DOCTYPE html>
 <head>
 <title>EAHP || Pickup Ambulance Request</title>
-
+<?php 
+$ambRegNum = isset($_SESSION['AmbRegNum']) ? $_SESSION['AmbRegNum'] : null;
+?>
 <script type="application/x-javascript"> addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); function hideURLbar(){ window.scrollTo(0,1); } </script>
 <!-- bootstrap-css -->
 <link rel="stylesheet" href="css/bootstrap.min.css" >
@@ -59,14 +61,20 @@ if (strlen($_SESSION['eahpaid']) == 0 && strlen($_SESSION['driverid']) == 0) {
           </tr>
         </thead>
         <?php
-      
-        
-$ret=mysqli_query($con,"select * from  tblambulancehiring  where tblambulancehiring.Status='Pickup'");
-$cnt=1;
-$count=mysqli_num_rows($ret);
-if($count>0){
-while ($row=mysqli_fetch_array($ret)) {
-?>
+        // Query based on user type
+        if (isset($_SESSION['eahpaid']) && $_SESSION['eahpaid'] != "") {
+            // Admin is logged in - retrieve all records where status is 'On the Way'
+            $ret = mysqli_query($con, "SELECT * FROM tblambulancehiring WHERE Status = 'pickup'");
+        } else if (isset($_SESSION['driverid']) && $_SESSION['driverid'] != "") {
+            // Driver is logged in - retrieve only those records for the driver's assigned ambulance where status is 'On the Way'
+            $driverId = $_SESSION['driverid'];
+            $ret = mysqli_query($con, "SELECT * FROM tblambulancehiring WHERE AmbulanceRegNo = '$ambRegNum' AND Status = 'pickup'");
+        }
+        $cnt = 1;
+        $count = mysqli_num_rows($ret);
+        if($count > 0) {
+            while ($row = mysqli_fetch_array($ret)) {
+        ?>
         <tbody>
           <tr data-expanded="true">
             <td><?php echo $cnt;?></td>

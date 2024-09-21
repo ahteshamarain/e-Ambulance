@@ -217,11 +217,12 @@ while ($row=mysqli_fetch_array($ret)) {
                     <input type="tel" class="form-control" name="phone" id="phone" placeholder="Enter Relative Phone Number" required>
                 </div>
                 <div class="col-md-3 form-group d-flex">
-                    <input name="user_location" type="text" class="form-control me-2" id="userLocation" placeholder="Your Location" readonly>
-                    <button type="button" class="btn btn-secondary btn-sm" id="useLocation">
-                        <i class="fas fa-location-arrow"></i>
-                    </button>
-                </div>
+    <input name="user_location" type="text" class="form-control me-2" id="userLocation" placeholder="click to side icon" readonly>
+    <button type="button" class="btn btn-secondary btn-sm" id="useLocation">
+        <i class="fas fa-location-arrow"></i>
+    </button>
+</div>
+
             </div>
 
             <div class="row" style="padding-top: 10px;"> <!-- Added padding here -->
@@ -288,38 +289,29 @@ function myMap() {
     directionsRenderer.setMap(map);
 
     document.getElementById('useLocation').addEventListener('click', function() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                map.setCenter(userLocation);
-                map.setZoom(15);
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+            map.setCenter(userLocation);
+            map.setZoom(15);
 
-                new google.maps.Marker({
-                    position: userLocation,
-                    map: map,
-                    title: "Your Location"
-                });
-
-                // Use Geocoder to get the location name
-                const geocoder = new google.maps.Geocoder();
-                geocoder.geocode({'location': userLocation}, function(results, status) {
-                    if (status === 'OK') {
-                        if (results[0]) {
-                            document.getElementById('userLocation').value = results[0].formatted_address;
-                        } else {
-                            alert('No results found');
-                        }
-                    } else {
-                        alert('Geocoder failed due to: ' + status);
-                    }
-                });
-            }, function() {
-                alert("Geolocation service failed.");
+            new google.maps.Marker({
+                position: userLocation,
+                map: map,
+                title: "Your Location"
             });
-        } else {
-            alert("Geolocation is not supported by this browser.");
-        }
-    });
+
+            // Store latitude and longitude in the input field
+            document.getElementById('userLocation').value = position.coords.latitude + ', ' + position.coords.longitude;
+
+        }, function() {
+            alert("Geolocation service failed.");
+        });
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+});
+
 
     // Initialize Places Autocomplete for hospital search
     var hospitalInput = document.getElementById('hospitalSearch');

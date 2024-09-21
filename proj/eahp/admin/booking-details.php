@@ -102,10 +102,54 @@ while ($row = mysqli_fetch_array($ret)) {
         <th>Message</th>
         <td><?php echo $row['Message'];?></td>
     </tr>
+    <?php
+// Assuming $row['UserLocation'] contains "lat,lng"
+
+
+// Add this in the script section
+?>
     <tr>
         <th>Patient Loaction</th>
-        <td colspan="3"><?php echo $row['UserLocation'];?></td>
+        <td id="location-name" colspan="3"></td>
     </tr>
+    <div id="googleMap" ></div>
+<p ></p>
+
+<script>
+function myMap() {
+  var userLocation = "<?php echo $row['UserLocation']; ?>"; // assume this is a string in the format "latitude,longitude"
+  var latLngArray = userLocation.split(",");
+  var lat = parseFloat(latLngArray[0]);
+  var lng = parseFloat(latLngArray[1]);
+
+  var mapProp= {
+    center:new google.maps.LatLng(lat, lng),
+    zoom:5,
+  };
+  var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
+
+  var geocoder = new google.maps.Geocoder();
+  var latLng = new google.maps.LatLng(lat, lng);
+  geocoder.geocode({'latLng': latLng}, function(results, status) {
+    if (status === 'OK') {
+      if (results[0]) {
+        var locationName = results[0].formatted_address;
+        <?php $locationVariable = '<script>document.write(locationName)</script>'; ?> // store the location name in a PHP variable
+        document.getElementById('location-name').textContent = locationName;
+      } else {
+        console.log('No results found');
+      }
+    } else {
+      console.log('Geocoder failed: ' + status);
+    }
+  });
+}
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOfoQEnSeEMhNmp8NI6ZZGulHloVCIZUA&callback=myMap"></script>
+
+
+
     <tr>
         <th>Hospital</th>
         <td colspan="3"><?php echo $row['hospital'];?></td>

@@ -50,18 +50,19 @@ $ambRegNum = isset($_SESSION['AmbRegNum']) ? $_SESSION['AmbRegNum'] : null;
                 </div>
                 <div>
                     <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th data-breakpoints="xs">S.NO</th>
-                                <th>Booking Number</th>
-                                <th>Patient Name</th>
-                                <th>Relative Contact Number</th>
-                                <th>Hiring Date/Time</th>
-                                <th>Request Date</th>
-                                <th>Status</th>
-                                <th data-breakpoints="xs">Action</th>
-                            </tr>
-                        </thead>
+                    <thead>
+                        <tr>
+                            <th data-breakpoints="xs">S.NO</th>
+                            <th>Booking Number</th>
+                            <th>Patient Name</th>
+                            <th>Relative Contact Number</th>
+                            <th>Hiring Date/Time</th>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Location</th> <!-- New Location Column -->
+                            <th data-breakpoints="xs">Action</th>
+                        </tr>
+                    </thead>
                         <?php
                         // Determine user role from session
                         if (isset($_SESSION['eahpaid']) && $_SESSION['eahpaid'] != "") {
@@ -103,6 +104,8 @@ $ambRegNum = isset($_SESSION['AmbRegNum']) ? $_SESSION['AmbRegNum'] : null;
                                         <span class="badge badge-danger">Rejected</span>
                                     <?php } ?>
                                 </td>
+                                <td>
+                                <a href="location.php?id=<?php echo $row['id']; ?>" class="btn btn-danger">Location</a>                                </td>
                                 <td>
                                     <a href="booking-details.php?id=<?php echo $row['ID']; ?>&&bookingnum=<?php echo $row['BookingNumber']; ?>" class="btn btn-primary">View</a>
                                 </td>

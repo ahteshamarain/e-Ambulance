@@ -4,15 +4,16 @@ error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['eahpaid']) == 0 && strlen($_SESSION['driverid']) == 0) {
   header('location:logout.php');
-}else{
+} else {
 
 ?>
-
 
 <!DOCTYPE html>
 <head>
 <title>EAHP || Rejected Ambulance Request</title>
-
+<?php 
+$ambRegNum = isset($_SESSION['AmbRegNum']) ? $_SESSION['AmbRegNum'] : null;
+?>
 <script type="application/x-javascript"> addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); function hideURLbar(){ window.scrollTo(0,1); } </script>
 <!-- bootstrap-css -->
 <link rel="stylesheet" href="css/bootstrap.min.css" >
@@ -48,82 +49,66 @@ if (strlen($_SESSION['eahpaid']) == 0 && strlen($_SESSION['driverid']) == 0) {
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th data-breakpoints="xs">S.NO</th>
+            <th>S.NO</th>
             <th>Booking Number</th>
             <th>Patient Name</th>
             <th>Relative Contact Number</th>
             <th>Hiring Date/Time</th>
             <th>Request Date</th>
             <th>Status</th>
-            <th data-breakpoints="xs">Action</th>
+            <th>Action</th>
           </tr>
         </thead>
         <?php
-      
-        
-$ret=mysqli_query($con,"select * from  tblambulancehiring  where tblambulancehiring.Status='Rejected'");
-$cnt=1;
-$count=mysqli_num_rows($ret);
-if($count>0){
-while ($row=mysqli_fetch_array($ret)) {
-?>
+        // Query based on user type
+        if (isset($_SESSION['eahpaid']) && $_SESSION['eahpaid'] != "") {
+            // Admin is logged in - retrieve all records where status is 'Rejected'
+            $ret = mysqli_query($con, "SELECT * FROM tblambulancehiring WHERE Status = 'Rejected'");
+        } else if (isset($_SESSION['driverid']) && $_SESSION['driverid'] != "") {
+            // Driver is logged in - retrieve only those records for the driver's assigned ambulance where status is 'Rejected'
+            $driverId = $_SESSION['driverid'];
+            $ret = mysqli_query($con, "SELECT * FROM tblambulancehiring WHERE AmbulanceRegNo = '$ambRegNum' AND Status = 'Rejected'");
+        }
+        $cnt = 1;
+        $count = mysqli_num_rows($ret);
+        if ($count > 0) {
+            while ($row = mysqli_fetch_array($ret)) {
+        ?>
         <tbody>
           <tr data-expanded="true">
             <td><?php echo $cnt;?></td>
-              <td><?php  echo $row['BookingNumber'];?></td>
-              <td><?php  echo $row['PatientName'];?></td>
-                  <td><?php  echo $row['RelativeConNum'];?></td>
-                  <td><?php  echo $row['HiringDate'];?> : <?php  echo $row['HiringTime'];?></td>
-                  <td><?php  echo $row['BookingDate'];?></td>
-
-                                   <td> <?php   $pstatus=$row['Status'];  
-                 if($pstatus==""){ ?>
-<span class="badge badge-info">New</span>
- <?php } elseif($pstatus=="Assigned"){ ?>
-<span } class="badge badge-primary">Assigned</span>
- <?php } elseif($pstatus=="On the way"){ ?>
-<span class="badge badge-primary">On the Way</span>
- <?php } elseif($pstatus=="Pickup"){ ?>
-<span class="badge badge-success">Patient Pick</span>
- <?php } elseif($pstatus=="Reached"){ ?>
-<span class="badge badge-success">Patient Reached Hospital</span>
- <?php } elseif($pstatus=="Rejected"){ ?>
-<span class="badge badge-success">Rejected</span>
-
-<?php } ?>
-</td>
-                  <td><a href="booking-details.php?id=<?php echo $row['ID'];?>&&bookingnum=<?php echo $row['BookingNumber'];?>" class="btn btn-primary">View</a></td>
-                </tr>
-                <?php 
-$cnt=$cnt+1;
-} } else {?>
-<tr>
-  <th colspan="8" style="color:red">No Record Found</th>
-</tr>
-<?php } ?>
- </tbody>
-            </table>
-            
-            
-          
+            <td><?php echo $row['BookingNumber'];?></td>
+            <td><?php echo $row['PatientName'];?></td>
+            <td><?php echo $row['RelativeConNum'];?></td>
+            <td><?php echo $row['HiringDate'];?> : <?php echo $row['HiringTime'];?></td>
+            <td><?php echo $row['BookingDate'];?></td>
+            <td><span class="badge badge-success">Rejected</span></td>
+            <td><a href="booking-details.php?id=<?php echo $row['ID'];?>&&bookingnum=<?php echo $row['BookingNumber'];?>" class="btn btn-primary">View</a></td>
+          </tr>
+        <?php 
+            $cnt = $cnt + 1;
+            } 
+        } else { ?>
+          <tr>
+            <th colspan="8" style="color:red">No Record Found</th>
+          </tr>
+        <?php } ?>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
 </section>
- <!-- footer -->
-		 <?php include_once('includes/footer.php');?>  
-  <!-- / footer -->
-</section>
-
-<!--main content end-->
+<!-- footer -->
+<?php include_once('includes/footer.php');?>  
+<!-- /footer -->
 </section>
 <script src="js/bootstrap.js"></script>
 <script src="js/jquery.dcjqaccordion.2.7.js"></script>
 <script src="js/scripts.js"></script>
 <script src="js/jquery.slimscroll.js"></script>
 <script src="js/jquery.nicescroll.js"></script>
-<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="js/flot-chart/excanvas.min.js"></script><![endif]-->
 <script src="js/jquery.scrollTo.js"></script>
 </body>
 </html>
-<?php }  ?>
+<?php } ?>
